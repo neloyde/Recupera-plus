@@ -1,0 +1,27 @@
+# Render Blueprint — Recupera+ 
+# Este ficheiro configura o deploy automático no Render (render.com)
+# Plano gratuito disponível. Gere pelo browser do telemóvel.
+
+services:
+  - type: web
+    name: recupera-plus
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_URL
+        sync: false   # define depois (será https://recupera-plus.onrender.com)
+      - key: CURRENCY
+        value: MZN
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: SMOOPAY_API_KEY
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
