@@ -52,7 +52,7 @@ function obBack(){ if(obStep>0){obStep--;showObStep();} }
 function showObStep(){
   document.querySelectorAll('.ob-step').forEach((el,i)=>el.classList.toggle('active', i===obStep));
   $('#obBack').style.display = obStep>0&&obStep<4?'block':'none';
-  $('#obNextBtn').style.display = (obStep>=1$('#obBack').style.display = obStep>0&&obStep<4?'block':'none';$('#obBack').style.display = obStep>0&&obStep<4?'block':'none';obStep<=3)?'block':'none';
+  $('#obNextBtn').style.display = (obStep>=1&&obStep<=3)?'block':'none';
   paintDots();
 }
 async function finishOnboarding(){
