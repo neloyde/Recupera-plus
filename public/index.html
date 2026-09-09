@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Recupera+ · Acompanhamento Pós-Cirúrgico</title>
+<meta name="theme-color" content="#0ea5a4">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ONBOARDING -->
+  <div id="onboarding">
+    <div class="ob-step active" id="ob0">
+      <div class="ob-logo">🩹</div>
+      <h2>Bem-vindo ao Recupera+</h2>
+      <p class="sub">O seu companheiro de recuperação pós-cirúrgica. Plano de exercícios, medicação e monitorização de sintomas — tudo num só lugar.</p>
+      <button class="btn" onclick="obNext()">Começar</button>
+    </div>
+    <div class="ob-step" id="ob1">
+      <h2>Qual foi a sua cirurgia?</h2>
+      <p class="sub">Selecionamos as fases de recuperação adequadas.</p>
+      <div class="type-grid" id="typeGrid"></div>
+    </div>
+    <div class="ob-step" id="ob2">
+      <h2>Quando foi a cirurgia?</h2>
+      <p class="sub">Usamos esta data para calcular em que fase está.</p>
+      <label class="ob-label">Data da cirurgia</label>
+      <input type="date" id="obSurgeryDate" class="ob-field">
+      <label class="ob-label">Hoje</label>
+      <div id="obTodayShow" class="ob-field" style="color:var(--muted)"></div>
+    </div>
+    <div class="ob-step" id="ob3">
+      <h2>Conte-nos sobre si</h2>
+      <p class="sub">Ajuda a ajustar o ritmo do plano.</p>
+      <label class="ob-label">Idade</label>
+      <input type="number" id="obAge" class="ob-field" min="10" max="110" placeholder="Ex.: 45">
+      <label class="ob-label">Nível de dor inicial (1-10)</label>
+      <input type="number" id="obPain" class="ob-field" min="1" max="10" placeholder="Ex.: 5">
+    </div>
+    <div class="ob-step" id="ob4">
+      <h2>Está tudo pronto! 🎉</h2>
+      <p class="sub">Criámos o seu plano de recuperação gratuito. Pode experimentar o Premium em qualquer altura.</p>
+      <button class="btn" onclick="finishOnboarding()">Entrar na minha recuperação</button>
+    </div>
+    <div class="btn-row mt4" style="margin-top:22px">
+      <button class="btn ghost" id="obBack" onclick="obBack()" style="display:none">Voltar</button>
+    </div>
+    <div style="text-align:center;margin-top:16px" id="obDots"></div>
+  </div>
+
+  <!-- AUTH SCREEN -->
+  <div class="screen" id="sc-auth">
+    <div class="header"><h1>Recupera+</h1><p>Inicie sessão na sua recuperação</p></div>
+    <div class="card" style="text-align:center"><div class="ob-logo" style="margin:0 auto 12px">🩹</div>
+      <h2 style="margin:0">Bem-vindo de volta</h2></div>
+    <div class="card">
+      <label class="ob-label">Email</label>
+      <input class="ob-field" id="auEmail" placeholder="ex.: ana@email.pt" type="email">
+      <label class="ob-label">Password</label>
+      <input class="ob-field" id="auPass" type="password" placeholder="••••••••">
+      <button class="btn mt4" style="margin-top:18px" onclick="auLogin()">Entrar</button>
+      <button class="btn ghost mt4" style="margin-top:12px" onclick="auRegister()">Criar conta nova</button>
+    </div>
+    <div class="card">
+      <div style="font-weight:800;margin-bottom:6px">Conta de demonstração</div>
+      <p class="tiny muted" style="margin:0">Crie uma conta gratuita para começar a sua recuperação, ou use uma conta de clínica para o painel profissional.</p>
+    </div>
+  </div>
+
+  <!-- HOJE -->
+  <div class="screen" id="sc-home">
+    <div class="header"><div class="row"><div><h1>Olá, paciente 👋</h1><p id="hDate"></p></div>
+      <span class="chip" id="hPlanChip">Gratuito</span></div></div>
+    <div class="hero">
+      <div class="ph">Fase de recuperação · Semana <span id="hWeek">1</span></div>
+      <div class="big" id="hPhaseTitle">Início da recuperação</div>
+      <div class="sub" id="hPhaseDesc"></div>
+      <div class="progress"><i id="hPhaseProg" style="width:20%"></i></div>
+    </div>
+    <div class="pill-row">
+      <div class="pill"><div class="ic" style="background:var(--accent-soft)">🔥</div><div><div class="t">Dor hoje</div><div class="v" id="hPainToday">—</div></div></div>
+      <div class="pill"><div class="ic" style="background:var(--ok-soft)">✅</div><div><div class="t">Exercícios</div><div class="v" id="hExDone">0/0</div></div></div>
+      <div class="pill"><div class="ic" style="background:var(--teal-soft)">💊</div><div><div class="t">Medicação</div><div class="v" id="hMedDone">0/0</div></div></div>
+    </div>
+    <div class="section-title">Exercícios de hoje</div>
+    <div id="hExerciseList"></div>
+    <button class="btn ghost" style="margin:0 16px" onclick="go('ex')">Ver biblioteca de exercícios</button>
+    <div class="section-title">Medicação de hoje</div>
+    <div id="hMedList"></div>
+    <button class="btn ghost" style="margin:0 16px 8px" onclick="go('med')">Gerir medicação</button>
+    <div class="section-title">Registar a dor de hoje</div>
+    <div class="card"><div class="pain-grid" id="hPainGrid"></div></div>
+  </div>
+
+  <!-- PLANO -->
+  <div class="screen" id="sc-plano">
+    <div class="header"><h1>Plano de recuperação</h1><p>As fases do seu percurso</p></div>
+    <div class="card">
+      <div style="font-weight:800;margin-bottom:4px" id="pTypeName">—</div>
+      <div class="tiny muted">Cirurgia a <b id="pTypeDate">—</b></div>
+      <div class="bar mt4" style="margin-top:12px"><i id="pOverall" style="width:0%"></i></div>
+      <div class="tiny muted" style="margin-top:6px"><span id="pOverallTxt">0</span>% do plano concluído</div>
+    </div>
+    <div class="section-title">Fases</div>
+    <div id="pPhaseList"></div>
+    <div class="section-title">Adesão (últimos 7 dias)</div>
+    <div class="card">
+      <div class="tiny muted">Exercícios concluídos</div><div class="bar"><i id="pAdEx" class="gold" style="width:0%"></i></div>
+      <div class="tiny muted mt4">Medicação em dia</div><div class="bar"><i id="pAdMed" style="width:0%"></i></div>
+    </div>
+  </div>
+
+  <!-- DOR -->
+  <div class="screen" id="sc-dor">
+    <div class="header"><h1>Dor</h1><p>Diário e progresso</p></div>
+    <div class="card"><div style="font-weight:800;margin-bottom:8px">Como está a sua dor agora?</div>
+      <div class="pain-grid" id="dPainGrid"></div></div>
+    <div class="section-title">Últimos 7 dias</div>
+    <div class="card" id="dHistoryList"></div>
+    <div class="section-title">Evolução da dor <span class="lock-tag" id="dChartLock">🔒 Premium</span></div>
+    <div class="card" id="dChartCard"><svg class="chart" id="dChart" viewBox="0 0 360 160"></svg>
+      <div class="legend"><span><i style="background:var(--accent)"></i>Dor</span></div></div>
+    <button class="btn gold" id="dUpgradeBtn" style="margin:0 16px 8px" onclick="showPremium()">🔓 Desbloquear gráficos e relatórios</button>
+    <button class="btn ghost" style="margin:0 16px" onclick="exportPDF()">📄 Exportar relatório em PDF</button>
+  </div>
+
+  <!-- EXERCICIOS -->
+  <div class="screen" id="sc-ex">
+    <div class="header"><h1>Exercícios</h1><p>Biblioteca do seu plano</p></div>
+    <div class="seg" id="exSeg">
+      <button class="on" onclick="exFilter('today')">Hoje</button>
+      <button onclick="exFilter('all')">Todas</button>
+      <button onclick="exFilter('lib')">Biblioteca</button>
+    </div>
+    <div id="exList"></div>
+  </div>
+
+  <!-- MED -->
+  <div class="screen" id="sc-med">
+    <div class="header"><h1>Medicação</h1><p>Lembretes de hoje</p></div>
+    <div id="medList"></div>
+    <div class="card" style="margin-top:16px">
+      <div style="font-weight:800;margin-bottom:10px">Adicionar lembrete</div>
+      <label class="ob-label">Nome do medicamento</label>
+      <input class="ob-field" id="medName" placeholder="Ex.: Ibuprofeno 400mg">
+      <label class="ob-label">Hora</label>
+      <input type="time" class="ob-field" id="medTime" value="08:00">
+      <button class="btn sm mt4" style="margin-top:12px;width:100%" onclick="addMed()">+ Adicionar</button>
+    </div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="screen" id="sc-perfil">
+    <div class="header"><h1>Perfil</h1><p>Os seus dados e plano</p></div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:48px" id="pfAvatar">🧑</div>
+      <div style="font-weight:800;font-size:1.2rem" id="pfName">Paciente</div>
+      <div class="tiny muted" id="pfMeta">—</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-weight:800">Plano atual</div><div class="tiny muted" id="pfPlanName">Gratuito (MVP)</div></div>
+        <button class="btn gold sm" onclick="showPremium()">💎 Gerir Premium</button>
+      </div>
+      <div class="tiny muted mt4" style="margin-top:10px" id="pfPlanFeatures"></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:800;margin-bottom:6px">Sinais de alarme 🚨</div>
+      <p class="tiny muted" style="margin:0 0 10px">Contacte o seu médico de imediato se notar:</p>
+      <ul class="tiny" style="margin:0;padding-left:18px;color:var(--ink)">
+        <li>Febre superior a 38°C</li><li>Inchaço anormal ou que não melhora</li>
+        <li>Dor muito superior ao esperado para a fase</li><li>Vermelhidão ou calor na zona da cirurgia</li>
+        <li>Dificuldade em respirar ou dor no peito</li>
+      </ul>
+    </div>
+    <div class="section-title">Notificações push 🔔</div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:800">Ativar notificações</div>
+        <div class="switch" id="pushSwitch" onclick="togglePush()"></div>
+      </div>
+      <p class="tiny muted mt4" style="margin-top:8px">Receba lembretes de medicação, exercícios e alertas de dor alta mesmo com a app fechada.</p>
+      <div id="pushStatus" class="tiny muted" style="margin-top:8px">Estado: desativado</div>
+      <button class="btn ghost sm mt4" style="margin-top:10px;width:100%" onclick="testPush()" id="testPushBtn">📨 Enviar notificação de teste</button>
+    </div>
+    <div class="section-title">Conta</div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between"><span class="tiny muted">Email</span><span class="tiny" id="pfAccountEmail">—</span></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px"><span class="tiny muted">Papel</span><span class="tiny" id="pfAccountRole">—</span></div>
+      <button class="btn ghost sm mt4" id="pfAuthBtn" style="margin-top:12px;width:100%" onclick="auLogout()">Terminar sessão</button>
+    </div>
+    <div class="section-title">Alertas</div>
+    <div id="pfAlerts"></div>
+    <div class="section-title">Consultas de follow-up</div>
+    <div id="pfAppts"></div>
+    <div class="btn-row" style="margin:0 16px 8px">
+      <button class="btn ghost sm" style="flex:1" onclick="pfAddAppt()">+ Agendar consulta</button>
+      <button class="btn gold sm" style="flex:1" onclick="pfShare()">👪 Partilhar</button>
+    </div>
+    <button class="btn gold" id="pfRevenueBtn" style="margin:0 16px 8px;display:none" onclick="go('revenue');renderRevenue()">📊 Dashboard de receitas (dono)</button>
+    <button class="btn teal" id="pfPaySettingsBtn" style="margin:0 16px 8px;display:none" onclick="go('paysettings');loadPaySettings()">⚙️ Configurações de pagamento (dono)</button>
+    <button class="btn ghost" style="margin:0 16px" onclick="resetApp()">↺ Reiniciar demonstração</button>
+  </div>
+
+  <!-- DASHBOARD RECEITAS (dono) -->
+  <div class="screen" id="sc-revenue">
+    <div class="header"><h1>📊 Dashboard de Receitas</h1><p>Visão financeira do seu negócio</p></div>
+    <div class="pill-row">
+      <div class="pill"><div class="ic" style="background:var(--ok-soft)">💰</div><div><div class="t">Total faturado</div><div class="v" id="rvTotal">—</div></div></div>
+      <div class="pill"><div class="ic" style="background:var(--teal-soft)">👥</div><div><div class="t">Assinantes ativos</div><div class="v" id="rvSubs">—</div></div></div>
+      <div class="pill"><div class="ic" style="background:var(--accent-soft)">📉</div><div><div class="t">Cancelamento</div><div class="v" id="rvCancel">—</div></div></div>
+    </div>
+    <div class="pill-row">
+      <div class="pill"><div class="ic" style="background:var(--gold-soft)">📅</div><div><div class="t">Receita este mês</div><div class="v" id="rvMonth">—</div></div></div>
+    </div>
+    <div class="section-title">Receita mensal (6 meses)</div>
+    <div class="card"><svg class="chart" id="rvChartMonth" viewBox="0 0 360 160"></svg>
+      <div class="legend"><span><i style="background:var(--teal)"></i>Receita (USD)</span></div></div>
+    <div class="section-title">Por plano</div>
+    <div class="card" id="rvByPlan"></div>
+    <div class="section-title">Por método de pagamento</div>
+    <div class="card"><svg class="chart" id="rvChartProvider" viewBox="0 0 360 160"></svg>
+      <div class="legend" id="rvProviderLegend"></div></div>
+    <div class="section-title">Assinantes criados</div>
+    <div class="card"><svg class="chart" id="rvChartGrowth" viewBox="0 0 360 160"></svg></div>
+  </div>
+
+  <!-- CONFIGURAÇÕES DE PAGAMENTO (dono) -->
+  <div class="screen" id="sc-paysettings">
+    <div class="header"><h1>⚙️ Configurações de Pagamento</h1><p>Onde o dinheiro das assinaturas cai</p></div>
+    <div class="card">
+      <div class="section-title">💰 SMOO Pay (M-Pesa · e-Mola · Cartões)</div>
+      <p class="tiny muted">Conta principal em Moçambique. O dinheiro cai na sua conta SMOO Pay, que transfere para o seu banco.</p>
+      <label class="field"><span>API Key da SMOO Pay</span><input id="psSmoopayKey" type="password" placeholder="Cole aqui a chave de API"></label>
+      <label class="field"><span>Endpoint</span><input id="psSmoopayEndpoint" value="https://api.smoopay.app"></label>
+      <div class="tiny" id="psSmoopayStatus"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">🅿️ PayPal (complementar)</div>
+      <label class="field"><span>Client ID</span><input id="psPaypalId" type="password" placeholder="Client ID do PayPal"></label>
+      <label class="field"><span>Client Secret</span><input id="psPaypalSecret" type="password" placeholder="Client Secret do PayPal"></label>
+      <label class="field"><span>Ambiente</span><select id="psPaypalEnv"><option value="sandbox">Sandbox (testes)</option><option value="live">Produção (dinheiro real)</option></select></label>
+      <div class="tiny" id="psPaypalStatus"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">💱 Moeda</div>
+      <label class="field"><span>Moeda de faturação</span><select id="psCurrency"><option value="MZN">MZN — Metical (Moçambique)</option><option value="USD">USD</option><option value="EUR">EUR</option></select></label>
+    </div>
+    <div class="tiny muted" style="margin:0 20px 12px">🔒 As chaves são guardadas de forma segura no servidor e só são enviadas aos gateways na altura do pagamento.</div>
+    <button class="btn gold" style="margin:0 20px" onclick="savePaySettings()">💾 Guardar configurações</button>
+    <button class="btn ghost" style="margin:12px 20px 24px" onclick="go('perfil')">← Voltar</button>
+  </div>
+
+  <!-- CHAT -->
+  <div class="screen" id="sc-chat">
+    <div class="header"><h1>Mensagens</h1><p id="chatSubtitle">Converse com o seu fisioterapeuta</p></div>
+    <div id="chatMessages" class="chat-box">
+      <div class="empty"><span class="em">💬</span>Carregando mensagens...</div>
+    </div>
+    <div class="chat-input-bar">
+      <input id="chatInput" class="ob-field chat-input" placeholder="Escreva a sua mensagem..." maxlength="2000">
+      <button class="btn chat-send" onclick="sendChat()">➤</button>
+    </div>
+  </div>
+
+  <!-- ASSINATURA PREMIUM -->
+  <div class="screen" id="sc-premium">
+    <div class="header"><h1>Premium 💎</h1><p id="premSubtitle">A sua assinatura</p></div>
+
+    <!-- estado atual -->
+    <div class="card" id="premStateCard">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-weight:800" id="premStateTitle">Plano gratuito</div>
+        <div class="tiny muted" id="premStateDetail">Sem subscrição ativa</div></div>
+        <div id="premStateBadge"></div>
+      </div>
+      <div id="premStateActions" style="margin-top:12px"></div>
+    </div>
+
+    <!-- planos -->
+    <div class="section-title">Escolha o seu plano</div>
+    <div id="premPlans"></div>
+    <div class="card" style="padding:12px 16px">
+      <div class="tiny muted" style="margin:0">💵 Pagamento seguro em <b>Dólares (USD)</b> · Aceitamos <b>M-Pesa, e-Mola, cartão de crédito/débito e PayPal</b>. A confirmação é feita no seu telemóvel (PIN M-Pesa/e-Mola) ou no checkout seguro. As subscrições renovam no fim de cada período, até cancelar.</div>
+    </div>
+
+    <!-- faturas -->
+    <div class="section-title">Histórico de faturas</div>
+    <div class="card" id="premInvoices">
+      <div class="empty" style="padding:14px"><span class="em">🧾</span>Sem faturas ainda.</div>
+    </div>
+
+    <!-- o que inclui -->
+    <div class="section-title">O que inclui o Premium</div>
+    <div class="card">
+      <ul class="tiny" style="margin:0;padding-left:18px;line-height:1.9">
+        <li>📈 Gráficos de progresso (dor, adesão, mobilidade)</li>
+        <li>📄 Relatório PDF para levar à consulta</li>
+        <li>🎬 Vídeos demonstrativos dos exercícios</li>
+        <li>🧠 Plano ajustado ao seu progresso</li>
+        <li>🚨 Alertas inteligentes de sinais de alarme</li>
+        <li>👨‍👩‍👧 Partilha de progresso com a família</li>
+        <li>📅 Lembretes de consultas de acompanhamento</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CLINICA (B2B2C) -->
+  <div class="screen" id="sc-clinic">
+    <div class="header"><h1>Painel da Clínica</h1><p>Acompanhe os seus pacientes</p></div>
+    <div class="pill-row">
+      <div class="pill"><div class="ic" style="background:var(--teal-soft)">👥</div><div><div class="t">Pacientes</div><div class="v" id="clTotal">0</div></div></div>
+      <div class="pill"><div class="ic" style="background:var(--ok-soft)">📈</div><div><div class="t">Adesão média</div><div class="v" id="clAdh">0%</div></div></div>
+      <div class="pill"><div class="ic" style="background:var(--accent-soft)">🔥</div><div><div class="t">Dor média</div><div class="v" id="clPain">—</div></div></div>
+    </div>
+    <div class="section-title">Pacientes ligados</div>
+    <div id="clPatientList"></div>
+    <div class="section-title">Gerar convite</div>
+    <div class="card">
+      <p class="tiny muted" style="margin:0 0 12px">Gere um código para um novo paciente ou cuidador se ligar ao painel.</p>
+      <div id="clInviteCode" style="font-size:1.4rem;font-weight:800;letter-spacing:.15em;text-align:center;background:var(--teal-soft);padding:14px;border-radius:12px">—</div>
+      <button class="btn mt4" style="margin-top:12px" onclick="clNewInvite()">Gerar novo código</button>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button class="nav-item active" data-s="home" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Hoje</button>
+    <button class="nav-item" data-s="plano" onclick="go('plano')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Plano</button>
+    <button class="nav-item" data-s="dor" onclick="go('dor')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 9A8 8 0 1 0 4 13c0 5 8 8 8 8s8-3 8-8c0-1.4-.4-2.7-1.2-4z"/></svg>Dor</button>
+    <button class="nav-item" data-s="ex" onclick="go('ex')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>Exercícios</button>
+    <button class="nav-item" data-s="med" onclick="go('med')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 12h6M12 9v6"/></svg>Med</button>
+    <button class="nav-item" data-s="chat" onclick="go('chat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat</button>
+    <button class="nav-item" data-s="perfil" onclick="go('perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Perfil</button>
+  </nav>
+
+</div>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
